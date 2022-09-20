@@ -53,5 +53,6 @@ int main(int argc, char **argv)
 		printf("read error\n");
 		exit(1);
 	}
+	close(sockfd);
 	exit(0);
 }

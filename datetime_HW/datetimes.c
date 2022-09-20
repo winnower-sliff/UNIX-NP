@@ -3,9 +3,18 @@
 /****************************************************/
 #include "datetime.h"
 #include <time.h>
+#include <signal.h>
+
+void signal_chld(int sig){
+	// TODO:杀死子进程
+	wait();
+	// exit(0); 
+}
 
 int main(int argc, char **argv)
 {
+	signal(SIGCHLD,signal_chld);
+
 	int listenfd, connfd;
 	struct sockaddr_in servaddr;
 	char buff[MAXLINE];
@@ -26,7 +35,7 @@ int main(int argc, char **argv)
 		connfd = accept(listenfd, (struct sockaddr *)NULL, NULL);
 		printf("Got message!\n");
 		pid_t p = fork();
-		if (p = 0)
+		if (p == 0)
 		{
 			close(listenfd);
 			time(&ticks);
@@ -37,9 +46,10 @@ int main(int argc, char **argv)
 			snprintf(buff, sizeof(buff), "%.24s\r\n", ctime(&ticks));
 			printf("Generate message!\n");
 
-			sleep(10000);
+			sleep(10);
 			write(connfd, buff, strlen(buff));
 			close(connfd);
+			exit(0);
 		}
 		else
 		{
