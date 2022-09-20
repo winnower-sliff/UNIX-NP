@@ -25,15 +25,25 @@ int main(int argc, char **argv)
 	{
 		connfd = accept(listenfd, (struct sockaddr *)NULL, NULL);
 		printf("Got message!\n");
+		pid_t p = fork();
+		if (p = 0)
+		{
+			close(listenfd);
+			time(&ticks);
+			printf("Got time!\n");
+			struct tm *p;
+			p = gmtime(&ticks);
 
-		time(&ticks);
-		printf("Got time!\n");
-		struct tm *p;
-		p = gmtime(&ticks);
+			snprintf(buff, sizeof(buff), "%.24s\r\n", ctime(&ticks));
+			printf("Generate message!\n");
 
-		snprintf(buff, sizeof(buff), "%.24s\r\n", ctime(&ticks));
-		printf("Generate message!\n");
-		write(connfd, buff, strlen(buff));
-		close(connfd);
+			sleep(10000);
+			write(connfd, buff, strlen(buff));
+			close(connfd);
+		}
+		else
+		{
+			close(connfd);
+		}
 	}
 }
