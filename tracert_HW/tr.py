@@ -45,15 +45,16 @@ def tra(name: str):
 
         if (len(node) > 0):
             print(node)
+            link += [node.pop()]
+
         else:
             print('*')
-            node.add('*')
+            # node.add('*')
             if (tap == taps - 1):
                 print("Unreachable!!!")
                 return []
 
-        link += [node.pop()]
-
+        
         # for n in node:
         #     G.add_node(n)
         #     for ltN in lastNode:
