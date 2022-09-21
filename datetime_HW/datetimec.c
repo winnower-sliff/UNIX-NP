@@ -24,7 +24,7 @@ int main(int argc, char **argv)
 
 	memset(&servaddr, 0, sizeof(servaddr));
 	servaddr.sin_family = AF_INET;
-	servaddr.sin_port = htons(13);
+	servaddr.sin_port = htons(13444);
 
 	if (inet_pton(AF_INET, argv[1], &servaddr.sin_addr) <= 0)
 	{
@@ -34,7 +34,7 @@ int main(int argc, char **argv)
 
 	if (connect(sockfd, (struct sockaddr *)&servaddr, sizeof(servaddr)) < 0)
 	{
-		printf("connect error\n");
+		perror("connect error");
 		exit(1);
 	}
 
@@ -53,5 +53,6 @@ int main(int argc, char **argv)
 		printf("read error\n");
 		exit(1);
 	}
+	close(sockfd);
 	exit(0);
 }
