@@ -101,7 +101,7 @@ hostnames_outside = [
     "www.baidu.com", "8.8.8.8"
 ]
 # hostnames = ["www.seu.edu.cn","ehall.seu.edu.cn", "jwc.seu.edu.cn",]
-whoami = 'm4'
+whoami = 
 for times in range(3):
     main(hostnames_inside, whoami + f'_inside{times}.gpickle', whoami)
     main(hostnames_outside, whoami + f'_outside{times}.gpickle', whoami)
