@@ -10,8 +10,9 @@ G_list = []
 whoami='suzhou'
 for times in range(3):
     A = nx.read_gpickle(f"{whoami}_inside{times}.gpickle")
-    B = nx.read_gpickle(f"{whoami}_outside{times}.gpickle")
-    G_list += [nx.compose(A, B)]
+    G_list += [A]
+    # B = nx.read_gpickle(f"{whoami}_outside{times}.gpickle")
+    # G_list += [B]
 G = nx.compose_all(G_list)
 pos = nx.spring_layout(G, scale=10)
 
