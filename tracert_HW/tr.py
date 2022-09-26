@@ -41,7 +41,8 @@ def myTracert(name: str, whoami: str):
                     #     G.add_node(n)
                     #     for ltN in lastNode:
                     #         G.add_edge(ltN, n)
-                    nodeLink += [name + "\n" + pkt[IP].src]
+                    nodeLink += [name]
+                    # nodeLink += [name + "\n" + pkt[IP].src]
                     return nodeLink
 
         if (len(node) > 0):
@@ -54,7 +55,8 @@ def myTracert(name: str, whoami: str):
             nodeLink += ['*']
             if (tap == taps - 1):
                 print("Unreachable!!!")
-                return nodeLink + [name + "\nunreachable"]
+                # return nodeLink + [name + "\nunreachable"]
+                return nodeLink + [name]
 
         # for n in node:
         #     G.add_node(n)
