@@ -7,12 +7,13 @@ import networkx as nx
 import matplotlib.pyplot as plt
 
 G_list = []
-whoami='suzhou'
-for times in range(3):
-    A = nx.read_gpickle(f"{whoami}_inside{times}.gpickle")
-    G_list += [A]
-    # B = nx.read_gpickle(f"{whoami}_outside{times}.gpickle")
-    # G_list += [B]
+whoamis=['nanmen']
+for whoami in whoamis:
+    for times in range(1):
+        A = nx.read_gpickle(f"{whoami}_inside{times}.gpickle")
+        G_list += [A]
+        # B = nx.read_gpickle(f"{whoami}_outside{times}.gpickle")
+        # G_list += [B]
 G = nx.compose_all(G_list)
 pos = nx.spring_layout(G, scale=10)
 
