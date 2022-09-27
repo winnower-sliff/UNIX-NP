@@ -148,7 +148,7 @@ void sendSpoof()
     pIPHeader->frag_off = 0x000;
     pIPHeader->ttl = 64;
     pIPHeader->protocol = 1; // TCP的协议号为6，UDP的协议号为17。ICMP的协议号为1，IGMP的协议号为2
-    pIPHeader->saddr = inet_addr("172.26.45.235");
+    pIPHeader->saddr = inet_addr("172.25.187.134");
     // pIPHeader->saddr = getifaddrs("eth0");
     // pIPHeader->daddr = inet_addr("121.194.14.142");
     pIPHeader->daddr = ((struct in_addr *)(gethostbyname("www.bilibili.com")->h_addr))->s_addr;
