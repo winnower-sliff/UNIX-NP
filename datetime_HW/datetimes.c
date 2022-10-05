@@ -1,19 +1,21 @@
-/****************************************************/
-/************* datetime Example Server **************/
-/****************************************************/
+/********************************************/
+/************* datetime Server **************/
+/********************************************/
+
 #include "datetime.h"
 #include <time.h>
 #include <signal.h>
 
-void signal_chld(int sig){
-	// TODO:杀死子进程
+void signal_chld(int sig)
+{
+	// 杀死子进程
 	wait();
-	// exit(0); 
+	// exit(0);
 }
 
 int main(int argc, char **argv)
 {
-	signal(SIGCHLD,signal_chld);
+	signal(SIGCHLD, signal_chld);
 
 	int listenfd, connfd;
 	struct sockaddr_in servaddr;
